@@ -5,28 +5,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Zyventra Gen Group — Digital & AI Agency</title>
-  <meta name="description" content="Zyventra Gen Group is a Digital & AI Agency helping small businesses with website design, data analysis, and AI integration. Powered by modern AI.">
+<meta name="description" content="Zyventra Gen Group is a Digital & AI Agency helping small businesses with website design, data analysis, and AI integration. Powered by modern AI.">
 <link rel="canonical" href="https://zyventra-gen-group.vercel.app/">
 <meta property="og:title" content="Zyventra Gen Group — Digital & AI Agency">
 <meta property="og:description" content="We build websites, decode data, and drive growth — powered by modern AI.">
 <meta property="og:url" content="https://zyventra-gen-group.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://zyventra-gen-group.vercel.app/og-image.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Zyventra Gen Group — Digital & AI Agency">
-<meta name="twitter:description" content="We build websites, decode data, and drive growth — powered by modern AI.">
-<meta name="twitter:image" content="https://zyventra-gen-group.vercel.app/og-image.png">
-  <meta name="description" content="Zyventra Gen Group is a Digital & AI Agency helping small businesses with website design, data analysis, and AI integration. Based in India.">
-<link rel="canonical" href="https://zyventra-gen-group.vercel.app/">
-
-<!-- Open Graph -->
-<meta property="og:title" content="Zyventra Gen Group — Digital & AI Agency">
-<meta property="og:description" content="We build websites, decode data, and drive growth — powered by modern AI.">
-<meta property="og:url" content="https://zyventra-gen-group.vercel.app/">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://zyventra-gen-group.vercel.app/og-image.png">
-
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Zyventra Gen Group — Digital & AI Agency">
 <meta name="twitter:description" content="We build websites, decode data, and drive growth — powered by modern AI.">
@@ -218,11 +203,9 @@ textarea.fi{resize:vertical;}
 .aic-t{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.02rem;color:var(--white);margin-bottom:5px;}
 .aic-d{color:var(--grey);font-size:.79rem;line-height:1.8;}
 
-/* ══ FEEDBACK & RATINGS ══ */
+/* FEEDBACK & RATINGS */
 #feedback{background:var(--ink2);}
 .fb-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;}
-
-/* avg block */
 .fb-avg{display:flex;align-items:stretch;gap:0;margin-bottom:44px;border:1px solid var(--border);overflow:hidden;}
 .avg-left{padding:28px 32px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:130px;border-right:1px solid var(--border);}
 .avg-num{font-family:'Cormorant Garamond',serif;font-size:3.8rem;font-weight:600;color:var(--gold);line-height:1;}
@@ -236,8 +219,6 @@ textarea.fi{resize:vertical;}
 .bar-track{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
 .bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:3px;transition:width 1.4s cubic-bezier(.16,1,.3,1);}
 .bar-cnt{font-size:.65rem;color:var(--grey2);width:16px;flex-shrink:0;}
-
-/* testimonial cards */
 .testimonials{display:flex;flex-direction:column;gap:12px;}
 .tcard{padding:24px 28px;background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;transition:all .35s;}
 .tcard:hover{border-left-color:var(--gold);background:rgba(201,168,76,.025);}
@@ -248,8 +229,6 @@ textarea.fi{resize:vertical;}
 .tcard-star{font-size:.8rem;color:var(--gold);}
 .tcard-text{color:var(--grey);font-size:.8rem;line-height:1.85;font-style:italic;}
 .tcard-date{font-size:.6rem;color:var(--grey2);margin-top:10px;letter-spacing:.1em;}
-
-/* review form */
 .fb-form-wrap{position:sticky;top:100px;}
 .fb-form-box{padding:40px;background:var(--surface);border:1px solid var(--border);}
 .fb-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.5rem;color:var(--white);margin-bottom:6px;}
@@ -506,15 +485,12 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
   </div>
 </section>
 
-<!-- ══ FEEDBACK & RATINGS ══ -->
+<!-- FEEDBACK & RATINGS -->
 <section id="feedback">
   <div class="s-tag">Client Feedback</div>
   <div class="fb-layout">
-
-    <!-- LEFT: score + bars + reviews -->
     <div>
       <h2 class="s-h rev">What Our Clients<br/><strong>Say About Us</strong></h2>
-
       <div class="fb-avg rev d1">
         <div class="avg-left">
           <div class="avg-num" id="avg-score">5.0</div>
@@ -531,7 +507,6 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
           </div>
         </div>
       </div>
-
       <div class="testimonials" id="reviews-list">
         <div class="tcard rev">
           <div class="tcard-head">
@@ -543,13 +518,10 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
         </div>
       </div>
     </div>
-
-    <!-- RIGHT: leave a review form -->
     <div class="fb-form-wrap rev d2">
       <div class="fb-form-box">
         <div class="fb-title">Leave a Review</div>
         <div class="fb-sub">Worked with us? Share your experience. Your feedback helps us improve and helps others trust us.</div>
-
         <label class="sp-lbl">Your Rating *</label>
         <div class="star-picker" id="star-picker">
           <span class="sp" data-v="1">★</span>
@@ -559,7 +531,6 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
           <span class="sp" data-v="5">★</span>
         </div>
         <div class="rating-txt" id="rating-txt">Click a star to rate</div>
-
         <div class="fb-fields">
           <div class="fb-row">
             <div><label class="fl">Your Name *</label><input class="fi" id="fb-name" type="text" placeholder="Jane Smith"/></div>
@@ -572,7 +543,6 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
         </div>
       </div>
     </div>
-
   </div>
 </section>
 
@@ -627,13 +597,13 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
 </div>
 
 <script>
-/* ── EMAILJS ── */
+/* EMAILJS */
 const EJ_PUB  = "vo4NSKOsNZ_5DRYaI";
 const EJ_SVC  = "service_oy59s88";
 const EJ_TPL  = "template_cco0sz2";
 if(typeof emailjs!=='undefined') emailjs.init({publicKey:EJ_PUB});
 
-/* ── TOAST ── */
+/* TOAST */
 function showToast(type,title,sub){
   const t=document.getElementById('toast');
   document.getElementById('toast-icon').textContent=type==='success'?'✓':'✕';
@@ -642,7 +612,7 @@ function showToast(type,title,sub){
   setTimeout(()=>t.classList.remove('show'),5000);
 }
 
-/* ── ENQUIRY FORM ── */
+/* ENQUIRY FORM */
 function validate(){
   const req=[{id:'f-name'},{id:'f-email'},{id:'f-message'}];
   let ok=true;
@@ -676,7 +646,7 @@ async function sendEnquiry(){
   }
 }
 
-/* ── STAR PICKER ── */
+/* STAR PICKER */
 const LABELS={1:'Poor',2:'Fair',3:'Good',4:'Great',5:'Excellent!'};
 let selectedRating=0;
 document.querySelectorAll('.sp').forEach(s=>{
@@ -696,7 +666,7 @@ document.querySelectorAll('.sp').forEach(s=>{
   });
 });
 
-/* ── REVIEWS STATE (session-only) ── */
+/* REVIEWS STATE */
 let reviews=[{name:'Monisha R.',role:'Owner, Monisha Bakery · Chennai',rating:5,text:'Zyventra built our website from scratch and it came out better than we ever imagined. Customers keep telling us how beautiful it looks. Our orders have gone up since we launched!',date:'December 2024'}];
 
 function recalcStats(){
@@ -748,7 +718,7 @@ async function submitFeedback(){
   setTimeout(()=>{btn.innerHTML='Submit Review →';btn.style.background='';btn.style.color='';btn.disabled=false;},4000);
 }
 
-/* ── THREE.JS BG ── */
+/* THREE.JS BG */
 (function(){
   const c=document.getElementById('bg');
   const R=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:true});
@@ -767,11 +737,11 @@ async function submitFeedback(){
   window.addEventListener('resize',()=>{CAM.aspect=innerWidth/innerHeight;CAM.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 })();
 
-/* ── REVEAL ── */
+/* REVEAL */
 const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on');}),{threshold:.08});
 document.querySelectorAll('.rev').forEach(el=>obs.observe(el));
 
-/* ── COUNTERS ── */
+/* COUNTERS */
 const cObs=new IntersectionObserver(es=>es.forEach(e=>{
   if(!e.isIntersecting)return;const el=e.target,tgt=+el.dataset.t;let cur=0;
   const ti=setInterval(()=>{cur+=tgt/55;if(cur>=tgt){cur=tgt;clearInterval(ti);}
@@ -780,7 +750,7 @@ const cObs=new IntersectionObserver(es=>es.forEach(e=>{
 }),{threshold:.5});
 document.querySelectorAll('.met-n[data-t]').forEach(c=>cObs.observe(c));
 
-/* ── NAV ── */
+/* NAV */
 window.addEventListener('scroll',()=>{document.getElementById('nav').style.background=scrollY>60?'rgba(10,12,18,.97)':'rgba(10,12,18,.88)';});
 </script>
 </body>
