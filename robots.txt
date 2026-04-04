@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://zyventra-gen-group.vercel.app/sitemap.xml
