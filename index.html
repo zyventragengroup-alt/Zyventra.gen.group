@@ -19,6 +19,56 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- JSONBin Database -->
+<script>
+  const JSONBIN_ID  = "69d9d143856a6821891fb55e";
+  const JSONBIN_KEY = "$2a$10$ddVjlqAZbz.qciNFlFmW.en0cu7fGrkZOqQhVj2sZ0.y6m4wM/83y";
+  const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
+  const HEADERS = {
+    "Content-Type": "application/json",
+    "X-Master-Key": JSONBIN_KEY,
+    "X-Bin-Meta": "false"
+  };
+
+  // Load all reviews from JSONBin and render them
+  async function loadReviews() {
+    try {
+      const res = await fetch(JSONBIN_URL + "/latest", { headers: HEADERS });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+      window.reviews = reviews;
+
+      const list = document.getElementById("reviews-list");
+      // Remove all cards except the first hardcoded one
+      while (list.children.length > 1) list.removeChild(list.lastChild);
+
+      reviews.forEach(r => window._renderReviewFromDB(r));
+      if (typeof recalcStats === "function") recalcStats();
+      if (typeof updateCarousel === "function") updateCarousel(0);
+    } catch(e) {
+      console.error("Failed to load reviews:", e);
+    }
+  }
+
+  // Save a new review to JSONBin (reads current list, appends, then writes back)
+  window._fbAddReview = async (rev) => {
+    const getRes = await fetch(JSONBIN_URL + "/latest", { headers: HEADERS });
+    const data = await getRes.json();
+    const existing = Array.isArray(data.reviews) ? data.reviews : [];
+    const newReview = { ...rev, date: new Date().toLocaleDateString("en-GB", { month:"long", year:"numeric" }) };
+    existing.push(newReview);
+    await fetch(JSONBIN_URL, {
+      method: "PUT",
+      headers: HEADERS,
+      body: JSON.stringify({ reviews: existing })
+    });
+  };
+
+  // Load reviews once DOM is ready
+  document.addEventListener("DOMContentLoaded", loadReviews);
+</script>
 <style>
 :root{
   --ink:#0a0c12;--ink2:#12151f;--surface:#161926;
@@ -219,10 +269,24 @@ textarea.fi{resize:vertical;}
 .bar-track{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
 .bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:3px;transition:width 1.4s cubic-bezier(.16,1,.3,1);}
 .bar-cnt{font-size:.65rem;color:var(--grey2);width:16px;flex-shrink:0;}
-.testimonials{display:flex;flex-direction:column;gap:12px;}
-.tcard{padding:24px 28px;background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;transition:all .35s;}
-.tcard:hover{border-left-color:var(--gold);background:rgba(201,168,76,.025);}
-.tcard-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px;}
+/* CAROUSEL */
+.carousel-wrap{position:relative;overflow:hidden;width:100%;}
+.carousel-track{display:flex;transition:transform .55s cubic-bezier(.16,1,.3,1);will-change:transform;}
+.tcard{min-width:100%;padding:28px 32px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);box-sizing:border-box;flex-shrink:0;}
+.tcard-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px;}
+.tcard-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.05rem;color:var(--white);}
+.tcard-role{font-size:.65rem;color:var(--grey2);margin-top:3px;}
+.tcard-stars{display:flex;gap:2px;flex-shrink:0;font-size:.9rem;color:var(--gold);}
+.tcard-text{color:var(--grey);font-size:.83rem;line-height:1.9;font-style:italic;}
+.tcard-date{font-size:.6rem;color:var(--grey2);margin-top:12px;letter-spacing:.1em;}
+.carousel-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;}
+.carousel-btn{background:transparent;border:1px solid var(--border);color:var(--gold);width:38px;height:38px;cursor:pointer;font-size:1rem;transition:all .25s;display:flex;align-items:center;justify-content:center;}
+.carousel-btn:hover{background:var(--gold);color:var(--ink);}
+.carousel-dots{display:flex;gap:8px;align-items:center;}
+.c-dot{width:7px;height:7px;border-radius:50%;background:var(--grey2);cursor:pointer;transition:all .3s;}
+.c-dot.active{background:var(--gold);transform:scale(1.3);}
+
+
 .tcard-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1rem;color:var(--white);}
 .tcard-role{font-size:.65rem;color:var(--grey2);margin-top:2px;}
 .tcard-stars{display:flex;gap:2px;flex-shrink:0;}
@@ -507,14 +571,22 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
           </div>
         </div>
       </div>
-      <div class="testimonials" id="reviews-list">
-        <div class="tcard rev">
-          <div class="tcard-head">
-            <div><div class="tcard-name">Monisha R.</div><div class="tcard-role">Owner, Monisha Bakery · Chennai</div></div>
-            <div class="tcard-stars">★★★★★</div>
+      <!-- Carousel wrapper -->
+      <div class="carousel-wrap">
+        <div class="carousel-track" id="reviews-list">
+          <div class="tcard">
+            <div class="tcard-head">
+              <div><div class="tcard-name">Monisha R.</div><div class="tcard-role">Owner, Monisha Bakery · Chennai</div></div>
+              <div class="tcard-stars">★★★★★</div>
+            </div>
+            <div class="tcard-text">"Zyventra built our website from scratch and it came out better than we ever imagined. Customers keep telling us how beautiful it looks. Our orders have gone up since we launched!"</div>
+            <div class="tcard-date">December 2024</div>
           </div>
-          <div class="tcard-text">"Zyventra built our website from scratch and it came out better than we ever imagined. Customers keep telling us how beautiful it looks. Our orders have gone up since we launched!"</div>
-          <div class="tcard-date">December 2024</div>
+        </div>
+        <div class="carousel-nav">
+          <button class="carousel-btn" id="c-prev">&#8592;</button>
+          <div class="carousel-dots" id="c-dots"></div>
+          <button class="carousel-btn" id="c-next">&#8594;</button>
         </div>
       </div>
     </div>
@@ -555,7 +627,7 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
       <p class="s-p rev d1">We work with a select number of clients each quarter to ensure every project gets our full attention. Reach out early.</p>
       <div class="con-block rev d2">
         <div class="cb-l">Email</div>
-        <div class="cb-v"><a href="mailto:zyventra.gen.group@gmail.com">zyventra.gen.group@gmail.com</a></div>
+        <div class="cb-v"><a href="/cdn-cgi/l/email-protection#166c6f6073786264773871737838716479636656717b777f7a3875797b"><span class="__cf_email__" data-cfemail="a2d8dbd4c7ccd6d0c38cc5c7cc8cc5d0cdd7d2e2c5cfc3cbce8cc1cdcf">[email&#160;protected]</span></a></div>
         <div class="cb-div"></div>
         <div class="cb-l">Services</div>
         <div class="cb-v">Website Design · Data Analysis · AI Integration</div>
@@ -596,7 +668,7 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
 </footer>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* EMAILJS */
 const EJ_PUB  = "vo4NSKOsNZ_5DRYaI";
 const EJ_SVC  = "service_oy59s88";
@@ -666,33 +738,73 @@ document.querySelectorAll('.sp').forEach(s=>{
   });
 });
 
-/* REVIEWS STATE */
-let reviews=[{name:'Monisha R.',role:'Owner, Monisha Bakery · Chennai',rating:5,text:'Zyventra built our website from scratch and it came out better than we ever imagined. Customers keep telling us how beautiful it looks. Our orders have gone up since we launched!',date:'December 2024'}];
+/* CAROUSEL LOGIC */
+let carouselIndex = 0;
+let carouselTotal = 0;
+let autoplayTimer = null;
+
+function updateCarousel(idx) {
+  const track = document.getElementById('reviews-list');
+  const dots = document.getElementById('c-dots');
+  if (!track) return;
+  carouselTotal = track.children.length;
+  carouselIndex = (idx + carouselTotal) % carouselTotal;
+  track.style.transform = `translateX(-${carouselIndex * 100}%)`;
+  // Update dots
+  dots.innerHTML = '';
+  for (let i = 0; i < carouselTotal; i++) {
+    const d = document.createElement('div');
+    d.className = 'c-dot' + (i === carouselIndex ? ' active' : '');
+    d.onclick = () => { updateCarousel(i); resetAutoplay(); };
+    dots.appendChild(d);
+  }
+}
+
+function resetAutoplay() {
+  clearInterval(autoplayTimer);
+  autoplayTimer = setInterval(() => updateCarousel(carouselIndex + 1), 4000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('c-prev').onclick = () => { updateCarousel(carouselIndex - 1); resetAutoplay(); };
+  document.getElementById('c-next').onclick = () => { updateCarousel(carouselIndex + 1); resetAutoplay(); };
+  updateCarousel(0);
+  resetAutoplay();
+});
+
+
+// The `reviews` array is populated by the real-time onSnapshot listener above.
+window.reviews = [];
 
 function recalcStats(){
-  const total=reviews.length;
-  const sum=reviews.reduce((a,r)=>a+r.rating,0);
-  const avg=total?Math.round((sum/total)*10)/10:0;
+  // Count hardcoded review (Monisha R.) + Firestore reviews
+  const firestoreCount = window.reviews.length;
+  const total = firestoreCount + 1; // +1 for the hardcoded card
+  const hardcodedRating = 5;
+  const sum = window.reviews.reduce((a,r)=>a+r.rating, hardcodedRating);
+  const avg = total ? Math.round((sum/total)*10)/10 : 0;
   document.getElementById('avg-score').textContent=avg.toFixed(1);
   document.getElementById('avg-total').textContent=total+' review'+(total!==1?'s':'');
   const counts={1:0,2:0,3:0,4:0,5:0};
-  reviews.forEach(r=>counts[r.rating]++);
+  counts[hardcodedRating]++;
+  window.reviews.forEach(r=>counts[r.rating]++);
   [1,2,3,4,5].forEach(n=>{
     document.getElementById('cnt'+n).textContent=counts[n];
     document.getElementById('bar'+n).style.width=(total?Math.round(counts[n]/total*100):0)+'%';
   });
 }
 
-function renderReview(r,prepend=false){
+// Called by the Firestore onSnapshot listener to render each persisted review
+window._renderReviewFromDB = function(r) {
   const stars='★'.repeat(r.rating)+'☆'.repeat(5-r.rating);
   const el=document.createElement('div');
   el.className='tcard';
-  el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='all .5s cubic-bezier(.16,1,.3,1)';
-  el.innerHTML=`<div class="tcard-head"><div><div class="tcard-name">${r.name}</div><div class="tcard-role">${r.role||'Client'}</div></div><div class="tcard-stars">${stars}</div></div><div class="tcard-text">"${r.text}"</div><div class="tcard-date">Just now</div>`;
-  const list=document.getElementById('reviews-list');
-  if(prepend)list.insertBefore(el,list.firstChild); else list.appendChild(el);
-  requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='none';});
-}
+  el.style.transition='all .5s cubic-bezier(.16,1,.3,1)';
+  const dateLabel = r.ts ? new Date(r.ts.seconds*1000).toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'Recently';
+  el.innerHTML=`<div class="tcard-head"><div><div class="tcard-name">${r.name}</div><div class="tcard-role">${r.role||'Client'}</div></div><div class="tcard-stars">${stars}</div></div><div class="tcard-text">"${r.text}"</div><div class="tcard-date">${dateLabel}</div>`;
+  document.getElementById('reviews-list').appendChild(el);
+  updateCarousel(carouselIndex);
+};
 
 async function submitFeedback(){
   if(!selectedRating){showToast('error','Please select a rating','Click 1–5 stars before submitting.');return;}
@@ -703,19 +815,24 @@ async function submitFeedback(){
   const btn=document.getElementById('fb-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Submitting…';
   const role=document.getElementById('fb-role').value.trim();
-  const rev={name,role,rating:selectedRating,text:msg,date:'Just now'};
-  reviews.unshift(rev);
-  recalcStats();
-  renderReview(rev,true);
-  btn.innerHTML='✓ Review Posted!';btn.style.background='var(--green)';btn.style.color='#fff';
-  showToast('success','Thank you for your review!','Your feedback has been posted.');
-  document.getElementById('fb-name').value='';
-  document.getElementById('fb-role').value='';
-  document.getElementById('fb-msg').value='';
-  selectedRating=0;
-  document.querySelectorAll('.sp').forEach(x=>x.classList.remove('lit'));
-  document.getElementById('rating-txt').textContent='Click a star to rate';
-  setTimeout(()=>{btn.innerHTML='Submit Review →';btn.style.background='';btn.style.color='';btn.disabled=false;},4000);
+  try {
+    // Save to Firestore — the onSnapshot listener will automatically update ALL visitors
+    await window._fbAddReview({name, role, rating:selectedRating, text:msg});
+    await loadReviews(); // Refresh list so new review appears immediately
+    btn.innerHTML='✓ Review Posted!';btn.style.background='var(--green)';btn.style.color='#fff';
+    showToast('success','Thank you for your review!','Your feedback is now live for everyone.');
+    document.getElementById('fb-name').value='';
+    document.getElementById('fb-role').value='';
+    document.getElementById('fb-msg').value='';
+    selectedRating=0;
+    document.querySelectorAll('.sp').forEach(x=>x.classList.remove('lit'));
+    document.getElementById('rating-txt').textContent='Click a star to rate';
+    setTimeout(()=>{btn.innerHTML='Submit Review →';btn.style.background='';btn.style.color='';btn.disabled=false;},4000);
+  } catch(err) {
+    console.error('Firestore error:',err);
+    btn.disabled=false;btn.innerHTML='Submit Review →';
+    showToast('error','Could not save review','Please check your Firebase config or try again.');
+  }
 }
 
 /* THREE.JS BG */
@@ -747,11 +864,4 @@ const cObs=new IntersectionObserver(es=>es.forEach(e=>{
   const ti=setInterval(()=>{cur+=tgt/55;if(cur>=tgt){cur=tgt;clearInterval(ti);}
     el.textContent=tgt===100?Math.floor(cur)+'%':tgt===2024?Math.floor(cur):Math.floor(cur)+'+';},18);
   cObs.unobserve(el);
-}),{threshold:.5});
-document.querySelectorAll('.met-n[data-t]').forEach(c=>cObs.observe(c));
-
-/* NAV */
-window.addEventListener('scroll',()=>{document.getElementById('nav').style.background=scrollY>60?'rgba(10,12,18,.97)':'rgba(10,12,18,.88)';});
-</script>
-</body>
-</html>
+}),{threshol
