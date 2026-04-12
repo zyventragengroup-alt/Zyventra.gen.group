@@ -381,8 +381,8 @@ footer{padding:46px 64px;border-top:1px solid var(--border);display:grid;grid-te
 
 /* PROJECT SLIDESHOW */
 .proj-slideshow{position:relative;width:100%;height:260px;overflow:hidden;background:var(--ink);}
-.proj-slides{display:flex;height:100%;transition:transform .5s cubic-bezier(.16,1,.3,1);}
-.proj-slide{min-width:100%;height:100%;flex-shrink:0;}
+.proj-slides{display:flex;height:100%;transition:transform .5s cubic-bezier(.16,1,.3,1);will-change:transform;}
+.proj-slide{height:100%;flex-shrink:0;overflow:hidden;}
 .proj-slide img{width:100%;height:100%;object-fit:cover;display:block;}
 .proj-ss-prev,.proj-ss-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.55);border:none;color:#fff;width:32px;height:32px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;z-index:10;transition:background .2s;}
 .proj-ss-prev{left:8px;}
@@ -960,69 +960,127 @@ function previewImgs(input){
   });
 }
 function renderDynamicProject(p){
-  // Support both single image (old) and multiple images (new)
-  const images = Array.isArray(p.images) && p.images.length ? p.images : (p.image ? [p.image] : []);
-  const uid = 'ss-' + Math.random().toString(36).slice(2,8);
-  const techChips = (p.tech||'').split(',').map(t=>`<span class="meta-chip">${t.trim()}</span>`).join('');
+  const images = (Array.isArray(p.images) && p.images.length) ? p.images : (p.image ? [p.image] : []);
+  if(!images.length){ console.warn('Project has no images:', p.name); return; }
 
-  // Build slides HTML
-  const slidesHTML = images.map(img =>
-    `<div class="proj-slide"><img src="${img}" alt="${p.name}" loading="lazy"/></div>`
-  ).join('');
+  const uid = 'ss' + Date.now() + Math.random().toString(36).slice(2,5);
+  const techChips = (p.tech||'').split(',').filter(t=>t.trim()).map(t=>`<span class="meta-chip">${t.trim()}</span>`).join('');
 
-  const dotsHTML = images.length > 1
-    ? `<div class="proj-ss-dots" id="${uid}-dots">${images.map((_,i)=>`<div class="proj-ss-dot${i===0?' active':''}" onclick="ssMov('${uid}',${i})"></div>`).join('')}</div>`
-    : '';
-
-  const navHTML = images.length > 1
-    ? `<button class="proj-ss-prev" onclick="ssMov('${uid}',-1,true)">&#8592;</button>
-       <button class="proj-ss-next" onclick="ssMov('${uid}',1,true)">&#8594;</button>` : '';
-
-  const countHTML = images.length > 1
-    ? `<div class="proj-img-count">${images.length} photos</div>` : '';
-
+  // Build card element
   const card = document.createElement('div');
   card.className = 'port-card';
-  card.dataset.ssIdx = '0';
-  card.dataset.ssTotal = images.length;
   card.id = uid;
-  card.innerHTML = `
-    <div class="proj-slideshow">
-      <div class="proj-slides" id="${uid}-track">${slidesHTML}</div>
-      ${navHTML}${dotsHTML}${countHTML}
-    </div>
-    <div class="port-info">
-      <div class="port-tag"><span class="port-badge">✓ Live</span><span class="port-cat">${p.category||'Project'}</span></div>
-      <div class="port-title">${p.name}</div>
-      <div class="port-desc">${p.description}</div>
-      <div class="port-meta">${techChips}</div>
-      ${p.url?`<a class="port-link" href="${p.url}" target="_blank" rel="noopener">View Live Site <svg viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`:''}
-    </div>`;
 
+  // Build slideshow container
+  const slideshow = document.createElement('div');
+  slideshow.className = 'proj-slideshow';
+
+  // Track (moves horizontally)
+  const track = document.createElement('div');
+  track.className = 'proj-slides';
+  track.id = uid + '-track';
+  // CRITICAL: set explicit width so transform works
+  track.style.width = (images.length * 100) + '%';
+
+  images.forEach((imgSrc, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'proj-slide';
+    // CRITICAL: each slide width relative to track, not parent
+    slide.style.width = (100 / images.length) + '%';
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.alt = p.name;
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    slide.appendChild(img);
+    track.appendChild(slide);
+  });
+  slideshow.appendChild(track);
+
+  // Nav arrows (only if multiple images)
+  if(images.length > 1){
+    const prev = document.createElement('button');
+    prev.className = 'proj-ss-prev';
+    prev.innerHTML = '&#8592;';
+    prev.addEventListener('click', function(e){ e.preventDefault(); ssMov(uid,-1,true); });
+
+    const next = document.createElement('button');
+    next.className = 'proj-ss-next';
+    next.innerHTML = '&#8594;';
+    next.addEventListener('click', function(e){ e.preventDefault(); ssMov(uid,1,true); });
+
+    // Dots
+    const dotsWrap = document.createElement('div');
+    dotsWrap.className = 'proj-ss-dots';
+    dotsWrap.id = uid + '-dots';
+    images.forEach((_,i) => {
+      const dot = document.createElement('div');
+      dot.className = 'proj-ss-dot' + (i===0?' active':'');
+      dot.addEventListener('click', function(e){ e.preventDefault(); ssMov(uid,i,false); });
+      dotsWrap.appendChild(dot);
+    });
+
+    // Count badge
+    const badge = document.createElement('div');
+    badge.className = 'proj-img-count';
+    badge.textContent = images.length + ' photos';
+
+    slideshow.appendChild(prev);
+    slideshow.appendChild(next);
+    slideshow.appendChild(dotsWrap);
+    slideshow.appendChild(badge);
+
+    // Store state on card
+    card.dataset.ssIdx = '0';
+    card.dataset.ssTotal = images.length;
+
+    // Auto-advance every 3 seconds
+    setInterval(function(){ ssMov(uid,1,true); }, 3500);
+  }
+
+  card.appendChild(slideshow);
+
+  // Info section
+  const info = document.createElement('div');
+  info.className = 'port-info';
+  info.innerHTML = `
+    <div class="port-tag"><span class="port-badge">✓ Live</span><span class="port-cat">${p.category||'Project'}</span></div>
+    <div class="port-title">${p.name}</div>
+    <div class="port-desc">${p.description}</div>
+    <div class="port-meta">${techChips}</div>
+    ${p.url ? `<a class="port-link" href="${p.url}" target="_blank" rel="noopener">View Live Site
+      <svg viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>` : ''}
+  `;
+  card.appendChild(info);
+
+  // Insert before placeholder or append
   const ph = document.getElementById('port-placeholder');
   if(ph) ph.parentNode.insertBefore(card, ph);
   else document.getElementById('port-grid').appendChild(card);
-
-  // Auto-slideshow every 3s if multiple images
-  if(images.length > 1){
-    setInterval(() => ssMov(uid, 1, true), 3000);
-  }
 }
+
 
 function ssMov(uid, val, isRelative){
   const card = document.getElementById(uid);
   if(!card) return;
-  const total = parseInt(card.dataset.ssTotal);
-  let idx = parseInt(card.dataset.ssIdx);
-  if(isRelative) idx = (idx + val + total) % total;
-  else idx = val;
+  const total = parseInt(card.dataset.ssTotal || '1');
+  let idx = parseInt(card.dataset.ssIdx || '0');
+  idx = isRelative ? (idx + val + total) % total : Math.max(0, Math.min(val, total-1));
   card.dataset.ssIdx = idx;
-  const track = document.getElementById(uid+'-track');
-  if(track) track.style.transform = `translateX(-${idx*100}%)`;
+  // Move track: since track width = N*100%, offset by idx*(100/N)%
+  const track = document.getElementById(uid + '-track');
+  if(track){
+    const pct = idx * (100 / total);
+    track.style.transform = 'translateX(-' + pct + '%)';
+  }
   // Update dots
-  const dotsEl = document.getElementById(uid+'-dots');
-  if(dotsEl) dotsEl.querySelectorAll('.proj-ss-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  const dotsEl = document.getElementById(uid + '-dots');
+  if(dotsEl) dotsEl.querySelectorAll('.proj-ss-dot').forEach(function(d,i){
+    d.classList.toggle('active', i === idx);
+  });
 }
+
 async function loadProjects(){
   try{
     const data = await jbGet();
@@ -1067,7 +1125,7 @@ async function saveProject(){
 
   // Compress all selected images
   async function compressAll(files){
-    return Promise.all(files.map(f => new Promise(res => compressImage(f, 1200, 0.75, res))));
+    return Promise.all(files.map(f => new Promise(res => compressImage(f, 1000, 0.70, res))));
   }
 
   compressAll(allFiles).then(async function(base64Array){
